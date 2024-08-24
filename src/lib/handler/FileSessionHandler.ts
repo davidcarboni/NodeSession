@@ -1,3 +1,5 @@
+import { SessionHandler } from "../types";
+
 /**
  * FileSessionHandler.js
  *
@@ -6,10 +8,10 @@
  * @license Licensed under MIT
  */
 
-var fs = require('fs-extra');
+import * as  fs from 'fs';
 var path = require('path');
 
-export class FileSessionHandler {
+export default class FileSessionHandler implements SessionHandler {
 
   /**
    * The path where sessions should be stored.
@@ -20,67 +22,66 @@ export class FileSessionHandler {
     this.__path = path;
 
     // Create directory for session storage.
-    fs.mkdirsSync(this.__path);
+    fs.mkdirSync(this.__path, { recursive: true });
   }
 
   /**
    * Reads the session data.
    */
-  read(sessionId: string, callback: Function) {
-    fs.readFile(path.join(this.__path, sessionId), 'utf-8', function (err, file) {
-      if (err) {
-        file = '';
-      }
-      if (callback) {
-        callback(file);
-      }
-    });
+  read(sessionId: string, callback?: (session: any) => void) {
+    try {
+      const data = fs.readFileSync(path.join(this.__path, sessionId), { encoding: 'utf-8' });
+      if (callback) callback(data);
+    } catch (e) {
+      if (callback) callback('');
+    }
   };
 
   /**
    * Writes the session data to the storage.
    */
-  write(sessionId: string, data: string, callback: Function) {
-    fs.writeFile(path.join(this.__path, sessionId), data, 'utf-8', function (err) {
-      if (callback) {
-        callback(err);
-      }
-    });
+  write(sessionId: string, data: string, callback: (err?: Error) => void) {
+    let err: Error | undefined;
+    try {
+      fs.writeFileSync(path.join(this.__path, sessionId), data, 'utf-8');
+    } catch (e) {
+      err = e as Error;
+    }
+    if (callback) callback(err);
   };
 
   /**
    * Destroys a session.
    */
-  destroy(sessionId: string, callback?: Function) {
-    fs.unlink(path.join(this.__path, sessionId), function (err) {
-      if (callback) {
-        callback(err);
-      }
-    });
+  destroy(sessionId: string, callback?: (err?: Error) => void) {
+    let err: Error | undefined;
+    try {
+      fs.unlinkSync(path.join(this.__path, sessionId));
+    } catch (e) {
+      err = e as Error;
+    }
+    if (callback) callback(err);
   };
 
   /**
    * Cleans up expired sessions (garbage collection).
    */
   gc(maxAge: string | number) {
-    var self = this;
-
-    fs.readdir(self.__path, function (err, files) {
-      if (err || files.length === 0) {
-        return;
-      }
-      files.forEach(function (file) {
-        if (file[0] != '.') {
-          fs.stat(path.join(self.__path, file), function (err, stat) {
-            if (!err) {
-              if (stat.isFile() && (((new Date()).getTime() - stat.atime.getTime()) > +(maxAge))) {
-                self.destroy(file);
-              }
-            }
-          });
+    try {
+      const files = fs.readdirSync(this.__path);
+      files.forEach((file) => {
+        if (file[0] !== '.') {
+          const stat = fs.statSync(path.join(this.__path, file));
+          if (stat.isFile() && (((new Date()).getTime() - stat.atime.getTime()) > +(maxAge))) {
+            this.destroy(file);
+          }
         }
       });
-    });
+    } catch (_e) {
+      // Ignore - best-effort cleanup
+    }
   };
 
+  // Interface methods - no implementation needed
+  setExists<T extends SessionHandler>(_value: boolean) { return this as unknown as T; }
 }
