@@ -13,10 +13,6 @@ var util = require('./../util');
 
 /**
  * Create a new session instance.
- *
- * @param  {String} name
- * @param  {Object} handler
- * @param  {String|null} id
  */
 export class Store {
 
@@ -30,7 +26,7 @@ export class Store {
 
   private id: any;
 
-  constructor(name: string, handler: Object, id: string) {
+  constructor(name: string, handler: Object, id: string | null) {
     this.setId(id);
     this.name = name;
     this.handler = handler;
@@ -147,11 +143,8 @@ export class Store {
 
   /**
    * Prepare the raw string data from the session for JSON parse.
-   *
-   * @param  {String} data
-   * @return {String}
    */
-  prepareForParse(data) {
+  prepareForParse(data: string): string {
     return data;
   };
 
@@ -159,20 +152,16 @@ export class Store {
   /**
    * Returns the session ID.
    *
-   * @return {String} The session ID.
+   * @return The session ID.
    */
-  getId() {
+  getId(): string {
     return this.id;
   };
 
   /**
    * Get the value of a given key and then forget it.
-   *
-   * @param  {String}  key
-   * @param  {*}  defaultValue
-   * @return {*}
    */
-  pull(key, defaultValue) {
+  pull(key: string, defaultValue: any): any {
     if (defaultValue === undefined) {
       defaultValue = null;
     }
@@ -272,9 +261,6 @@ export class Store {
 
   /**
    * Prepare the JSON string session data for storage.
-   *
-   * @param  {String} data
-   * @return {String}
    */
   prepareForStorage(data: string): string {
     return data;
@@ -345,9 +331,6 @@ export class Store {
 
   /**
    * Flash a key / value pair to the session.
-   *
-   * @param  {String}  key
-   * @param  {*}   value
    */
   flash(key: string, value: any) {
     this.put(key, value);
