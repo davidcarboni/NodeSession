@@ -80,7 +80,7 @@ class NodeSession {
 
       ended = true;
 
-      self.closeSession(request.session, function (err) {
+      self.closeSession(request.session, function (err: Error) {
         if (err) {
           throw err;
         }
@@ -90,14 +90,6 @@ class NodeSession {
     };
 
     // start the session for the request
-    this.startSession(request, callback);
-  }
-
-
-  /**
-   * Start the session for the given request.
-   */
-  private startSession(request: Request, callback: Function) {
     this.getSession(request, function (session) {
       request.session = session;
 
