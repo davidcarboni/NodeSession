@@ -14,7 +14,7 @@ var util = require('./../util');
 /**
  * Create a new session instance.
  */
-export class Store {
+export default class Store {
 
   private name: string;
 
@@ -26,7 +26,7 @@ export class Store {
 
   private id: any;
 
-  constructor(name: string, handler: Object, id: string | null) {
+  constructor(name: string, handler: Object, id?: string) {
     this.setId(id);
     this.name = name;
     this.handler = handler;
