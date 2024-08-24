@@ -223,7 +223,7 @@ class NodeSession {
         options.maxAge /= 1000;
       }
 
-      if (null == options.path) {
+      if (!options.path) {
         options.path = '/';
       }
 
@@ -309,7 +309,7 @@ class NodeSession {
   /**
    * Unsign a cookie value
    */
-  private unsignCookie(val: String): String | Boolean {
+  private unsignCookie(val: string): string | boolean {
     return signature.unsign(val, this.config.secret);
   };
 
