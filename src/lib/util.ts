@@ -13,11 +13,8 @@ var util = {
 
   /**
    * Define a object key by dot notation
-   *
-   * @param {Object} obj
-   * @param {String} name
    */
-  defineMember: function (obj, name) {
+  defineMember: function (obj: Record<string, any>, name: string) {
     var nameSplit = name.split('.');
     var i;
     var exists = obj;
@@ -26,28 +23,25 @@ var util = {
       if (!exists.hasOwnProperty(nameSplit[i]) || typeof exists[nameSplit[i]] !== 'object') {
         exists[nameSplit[i]] = {};
       }
-      exists = exists[nameSplit[i]]
+      exists = exists[nameSplit[i]];
     }
   },
 
   /**
    * Compile "proxy trust" value to function.
-   *
-   * @param  {Boolean|String|Number|Array|Function} val
-   * @return {Function}
    */
 
-  compileTrust: function (val) {
+  compileTrust: function (val: boolean | string | number | Array<any> | Function): Function {
     if (typeof val === 'function') return val;
 
     if (val === true) {
       // Support plain true/false
-      return function () { return true };
+      return function () { return true; };
     }
 
     if (typeof val === 'number') {
       // Support trusting hop count
-      return function (a, i) { return i < val };
+      return function (_a: any, i: number) { return i < +(val); };
     }
 
     if (typeof val === 'string') {
