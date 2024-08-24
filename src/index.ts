@@ -21,7 +21,9 @@ import util from './util';
  * @constructor
  */
 class NodeSession {
+
   private config: Config;
+
   private manager: SessionManager;
 
   constructor(config: Partial<Config> & { secret: string; }, encrypter?: any) {
