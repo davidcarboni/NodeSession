@@ -6,7 +6,7 @@
  * @license Licensed under MIT
  */
 
-import * as SessionManager from './lib/SessionManager';
+import SessionManager from './lib/SessionManager';
 import { Config } from './lib/types';
 var onHeaders = require('on-headers');
 var _ = require('lodash');
@@ -17,18 +17,15 @@ var util = require('./lib/util');
 /**
  * Create a new NodeSession instance
  *
- * @param {Config} config - session configuration object
- * @param {Object | void} encrypter
+ * @param config - session configuration object
  * @constructor
  */
 class NodeSession {
-  private config: Partial<Config>;
+  private config: Config;
   private manager: SessionManager;
-  private addCookieToResponse: any;
-  private closeSession: any;
 
-  constructor(config: Partial<Config> & { secret: string; }, encrypter: Object | void) {
-    var defaults: Partial<Config> = {
+  constructor(config: Partial<Config> & { secret: string; }, encrypter?: any) {
+    var defaults: Config = {
       driver: 'file',
       lifetime: 300000, // five minutes
       expireOnClose: false,
@@ -38,11 +35,11 @@ class NodeSession {
       lottery: [2, 100],
       cookie: 'node_session',
       path: '/',
-      domain: null,
       secure: false,
       httpOnly: true,
       encrypt: false,
       secret: 'override this value with a 32+ character random string',
+      trustProxy: false,
     };
     this.config = { ...defaults, ...config };
     this.manager = new SessionManager(this.config, encrypter);
@@ -130,7 +127,7 @@ class NodeSession {
     var config = this.config;
     var session = request.session;
     var maxAge = this.getCookieLifetime();
-    var data = {
+    var data: Record<string, string | boolean | number | undefined> = {
       signed: true,
       path: config.path,
       domain: config.domain,
@@ -155,11 +152,8 @@ class NodeSession {
 
   /**
    * Get the cookie lifetime in seconds.
-   *
-   * @return {Number}
-   * @private
    */
-  private getCookieLifetime(): Number {
+  private getCookieLifetime(): number {
     var config = this.config;
 
     return config.expireOnClose ? 0 : config.lifetime;
