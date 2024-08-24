@@ -22,5 +22,12 @@
     "strictPropertyInitialization": true,
     "target": "ES2019"
   },
-  "exclude": ["dist", "cypress", "assets", "templates", "cypress.a11y.config.ts", "cypress.config.ts"]
+  "exclude": [
+    "dist",
+    "cypress",
+    "assets",
+    "templates",
+    "cypress.a11y.config.ts",
+    "cypress.config.ts"
+  ]
 }
