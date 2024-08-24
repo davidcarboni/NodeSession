@@ -13,43 +13,31 @@ var Encrypter = require('encrypter');
 
 /**
  * Create a new session instance.
- *
- * @param  {String} name
- * @param  {Object} handler
- * @param  {Object|null} encrypter
- * @param  {String} secret - key for encryption
- * @param  {String|null} id
  */
-function EncryptedStore(name, handler, encrypter, secret, id) {
-    EncryptedStore.super_.apply(this, arguments);
+class EncryptedStore extends Store {
+  constructor(name: string, handler: Object, encrypter: Object | null, secret: string, id: string | null) {
+    super(name, handler);
 
     if (!encrypter) {
-        encrypter = new Encrypter(secret);
+      encrypter = new Encrypter(secret);
     }
 
     this.__encrypter = encrypter;
-}
+  }
 
-util.inherits(EncryptedStore, Store);
 
-/**
- * Prepare the raw string data from the session for JSON parse.
- *
- * @param  {String} data
- * @return {String}
- */
-EncryptedStore.prototype.__prepareForParse = function (data) {
+  /**
+   * Prepare the raw string data from the session for JSON parse.
+   */
+  __prepareForParse(data: string): string {
     return this.__encrypter.decrypt(data);
-};
+  };
 
-/**
- * Prepare the JSON string session data for storage.
- *
- * @param  {String} data
- * @return {String}
- */
-EncryptedStore.prototype.__prepareForStorage = function (data) {
+  /**
+   * Prepare the JSON string session data for storage.
+   */
+  __prepareForStorage(data: string): string {
     return this.__encrypter.encrypt(data);
-};
+  };
 
-module.exports = EncryptedStore;
+}
