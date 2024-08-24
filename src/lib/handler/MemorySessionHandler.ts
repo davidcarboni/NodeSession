@@ -1,3 +1,5 @@
+import { SessionHandler } from "../types";
+
 /**
  * MemorySessionHandler.js
  *
@@ -6,44 +8,43 @@
  * @license Licensed under MIT
  */
 
-export class MemorySessionHandler {
+export default class MemorySessionHandler implements SessionHandler {
 
-  private __sessions: any;
+  /**
+   * Object to keep all the sessions
+   */
+  private sessions: Record<string, string>;
 
-  constructor(session) {
-    /**
-     * Object to keep all the sessions
-     *
-     * @type {Object}
-     * @private
-     */
-
-    this.__sessions = session;
+  constructor(session?: Record<string, string>) {
+    this.sessions = session || {};
   }
 
   /**
    * Reads the session data.
    */
-  read(sessionId: string, callback: Function) {
-    callback(this.__sessions[sessionId] || '');
+  read(sessionId: string, callback: (session: any) => void) {
+    callback(this.sessions[sessionId] || '');
   };
 
   /**
    * Writes the session data to the storage.
    */
-  write(sessionId: string, data: string, callback: Function) {
-    this.__sessions[sessionId] = data;
+  write(sessionId: string, data: string, callback: (err?: Error) => void) {
+    this.sessions[sessionId] = data;
     callback();
   };
 
   /**
    * Destroys a session.
    */
-  destroy(sessionId: string, callback: Function) {
-    delete this.__sessions[sessionId];
+  destroy(sessionId: string, callback: (err?: Error) => void) {
+    delete this.sessions[sessionId];
     if (callback) {
       callback();
     }
   };
 
+  // Interface methods - no implementation needed
+  gc(_maxAge: string | number) { return; }
+  setExists<T extends SessionHandler>(_value: boolean) { return this as unknown as T; }
 }
