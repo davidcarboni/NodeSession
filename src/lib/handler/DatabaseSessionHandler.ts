@@ -1,3 +1,5 @@
+import { SessionHandler } from "../types";
+
 /**
  * DatabaseSessionHandler.js
  *
@@ -5,10 +7,13 @@
  * @copyright 2015, Harish Anchu. All rights reserved.
  * @license Licensed under MIT
  */
-export class DatabaseSessionHandler {
+export default class DatabaseSessionHandler implements SessionHandler {
+
   private __model: any;
+
   private __exists: boolean;
-  constructor(model) {
+
+  constructor(model: any) {
     /**
      * Session table waterline model instance.
      *
@@ -22,17 +27,17 @@ export class DatabaseSessionHandler {
      *
      * @type {Boolean}
      */
-    this.__exists;
+    this.__exists = false;
   }
 
   /**
    * Reads the session data.
    */
-  read(sessionId: string, callback: Function) {
+  read(sessionId: string, callback: (session: any) => void) {
     var self = this;
     var response = '';
 
-    this.__model.findOne(sessionId, function (err, session) {
+    this.__model.findOne(sessionId, function (err: Error, session: Object) {
       if (!err && session && session.payload) {
         self.__exists = true;
 
@@ -48,12 +53,12 @@ export class DatabaseSessionHandler {
   /**
    * Writes the session data to the storage.
    */
-  write(sessionId: string, data: string, callback: Function) {
+  write(sessionId: string, data: string, callback: (err?: Error) => void) {
     var self = this;
     if (this.__exists) {
       this.__model.update(sessionId,
         { payload: JSON.stringify(data), lastActivity: (new Date()).getTime() },
-        function (err: Error, record: any) {
+        function (err: Error, _record: any) {
           if (!err) {
             self.__exists = true;
           }
@@ -88,8 +93,8 @@ export class DatabaseSessionHandler {
   /**
    * Destroys a session.
    */
-  destroy(sessionId: string, callback: Function) {
-    this.__model.destroy(sessionId, function (err) {
+  destroy(sessionId: string, callback: (err?: Error) => void) {
+    this.__model.destroy(sessionId, function (err: Error) {
       if (callback) {
         callback(err);
       }
@@ -113,10 +118,10 @@ export class DatabaseSessionHandler {
    * @param  {Boolean} value
    * @return {DatabaseSessionHandler}
    */
-  setExists(value: boolean): DatabaseSessionHandler {
+  setExists<DatabaseSessionHandler>(value: boolean): DatabaseSessionHandler {
     this.__exists = value;
 
-    return this;
+    return this as unknown as DatabaseSessionHandler;
   };
 
 }
