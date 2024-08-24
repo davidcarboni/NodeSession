@@ -18,324 +18,306 @@ var util = require('./../util');
  * @param  {Object} handler
  * @param  {String|null} id
  */
-function Store(name, handler, id) {
+export class Store {
+
+  private name: string;
+
+  private handler: Object;
+
+  protected attributes: Record<string, any>;
+
+  private started: boolean;
+
+  private id: any;
+
+  constructor(name: string, handler: Object, id: string) {
     this.setId(id);
-    this.__name = name;
-    this.__handler = handler;
+    this.name = name;
+    this.handler = handler;
 
     /**
      * The session attributes.
-     *
-     * @var {Object}
-     * @protected
      */
-    this.__attributes = {};
+    this.attributes = {};
 
     /**
      * Session store started status.
-     *
-     * @var {Boolean}
      */
-    this.__started = false;
-}
+    this.started = false;
+  }
 
-/**
- * Returns the session ID.
- *
- * @return {String} The session ID.
- */
-Store.prototype.setId = function (id) {
-    if (!this.__isValidId(id)) {
-        id = this.__generateSessionId();
+  /**
+   * Sets the session ID.
+   */
+  setId(id?: string) {
+    if (this.isValidId(id)) {
+      this.id = id;
+    } else {
+      this.id = this.generateSessionId();
     }
+  };
 
-    this.__id = id;
-};
-
-/**
- * Determine if given id is a valid session ID.
- *
- * @param  {String}  id
- * @return {Boolean}
- * @protected
- */
-Store.prototype.__isValidId = function (id) {
+  /**
+   * Determine if given id is a valid session ID.
+   * @
+   */
+  protected isValidId(id?: string): boolean {
     return typeof id === 'string' && /^[A-Za-z0-9-_]{40}$/.test(id);
-};
+  };
 
-/**
- * Get a new, random session ID.
- *
- * @return {String}
- * @protected
- */
-Store.prototype.__generateSessionId = function () {
+  /**
+   * Get a new, random session ID.
+   */
+  protected generateSessionId(): string {
     return uid(30);
-};
+  };
 
-/**
- * Returns the session name.
- *
- * @return {String} The session name.
- */
-Store.prototype.getName = function () {
-    return this.__name;
-};
+  /**
+   * Returns the session name.
+   */
+  getName(): string {
+    return this.name;
+  };
 
-/**
- * Starts the session storage.
- *
- * @return {Boolean} True if session started.
- * @throws Error If session fails to start.
- */
-Store.prototype.start = function (callback) {
+  /**
+   * Starts the session storage.
+   *
+   * @throws Error If session fails to start.
+   */
+  start(callback: Function) {
     var self = this;
 
-    this.__loadSession(function () {
-        if (!self.__attributes['_token']) {
-            self.regenerateToken();
+    this.loadSession(function () {
+      if (!self.attributes['_token']) {
+        self.regenerateToken();
+      }
+
+      self.started = true;
+
+      callback();
+    });
+  };
+
+  /**
+   * Checks if an attribute is defined.
+   *
+   * @param name The attribute name
+   * @return true if the attribute is defined, false otherwise
+   */
+  has(name: string): boolean {
+    return this.get(name) !== undefined;
+  };
+
+  /**
+   * Load the session data from the handler.
+   *
+   * @param {function} callback
+   * @protected
+   */
+  loadSession(callback) {
+    var self = this;
+
+    this.readFromHandler(function (data) {
+      self.attributes = _.merge(self.attributes, data);
+      callback();
+    });
+
+  };
+
+  /**
+   * Read the session data from the handler.
+   *
+   * @param {function} callback
+   */
+  readFromHandler(callback) {
+    var self = this;
+
+    this.handler.read(this.getId(), function afterRead(data) {
+      if (data) {
+        try {
+          data = JSON.parse(self.prepareForParse(data));
+        } catch (e) {
+
         }
+      }
 
-        self.__started = true;
-
-        callback();
+      callback(data ? data : {});
     });
-};
+  };
 
-/**
- * Checks if an attribute is defined.
- *
- * @param {string} name The attribute name
- * @return {Boolean} true if the attribute is defined, false otherwise
- */
-Store.prototype.has = function (name) {
-    return this.get(name) != undefined;
-};
-
-/**
- * Load the session data from the handler.
- *
- * @param {function} callback
- * @protected
- */
-Store.prototype.__loadSession = function (callback) {
-    var self = this;
-
-    this.__readFromHandler(function (data) {
-        self.__attributes = _.merge(self.__attributes, data);
-        callback();
-    });
-
-};
-
-/**
- * Read the session data from the handler.
- *
- * @param {function} callback
- */
-Store.prototype.__readFromHandler = function (callback) {
-    var self = this;
-
-    this.__handler.read(this.getId(), function afterRead(data) {
-        if (data) {
-            try {
-                data = JSON.parse(self.__prepareForParse(data));
-            } catch (e) {
-
-            }
-        }
-
-        callback(data ? data : {});
-    });
-};
-
-/**
- * Prepare the raw string data from the session for JSON parse.
- *
- * @param  {String} data
- * @return {String}
- */
-Store.prototype.__prepareForParse = function (data) {
+  /**
+   * Prepare the raw string data from the session for JSON parse.
+   *
+   * @param  {String} data
+   * @return {String}
+   */
+  prepareForParse(data) {
     return data;
-};
+  };
 
 
-/**
- * Returns the session ID.
- *
- * @return {String} The session ID.
- */
-Store.prototype.getId = function () {
-    return this.__id;
-};
+  /**
+   * Returns the session ID.
+   *
+   * @return {String} The session ID.
+   */
+  getId() {
+    return this.id;
+  };
 
-/**
- * Get the value of a given key and then forget it.
- *
- * @param  {String}  key
- * @param  {*}  defaultValue
- * @return {*}
- */
-Store.prototype.pull = function (key, defaultValue) {
+  /**
+   * Get the value of a given key and then forget it.
+   *
+   * @param  {String}  key
+   * @param  {*}  defaultValue
+   * @return {*}
+   */
+  pull(key, defaultValue) {
     if (defaultValue === undefined) {
-        defaultValue = null;
+      defaultValue = null;
     }
 
-    if (this.__attributes[key]) {
-        defaultValue = this.__attributes[key];
-        delete this.__attributes[key]
+    if (this.attributes[key]) {
+      defaultValue = this.attributes[key];
+      delete this.attributes[key];
     }
 
     return defaultValue;
-};
+  };
 
-/**
- * Returns an attribute.
- *
- * @param {String} name The attribute name
- * @param {*} defaultValue The default value if not found.
- *
- * @return {*}
- */
-Store.prototype.get = function (name, defaultValue) {
-    var value = dotAccess.get(this.__attributes, name);
+  /**
+   * Returns an attribute.
+   *
+   * @param name The attribute name
+   * @param defaultValue The default value if not found.
+   *
+   * @return The attribute value
+   */
+  get(name: string, defaultValue?: any): any {
+    var value = dotAccess.get(this.attributes, name);
     return value === undefined ? defaultValue : value;
-};
+  };
 
-/**
- * Returns attributes.
- *
- * @return {Object} Attributes
- */
-Store.prototype.all = function () {
-    return this.__attributes;
-};
+  /**
+   * Returns all attributes.
+   */
+  all(): Record<string, any> {
+    return this.attributes;
+  };
 
-/**
- * Sets an attribute.
- *
- * @param {string} name
- * @param {*} value
- */
-Store.prototype.set = function (name, value) {
+  /**
+   * Sets an attribute.
+   */
+  set(name: string, value: any) {
     try {
-        dotAccess.set(this.__attributes, name, value);
+      dotAccess.set(this.attributes, name, value);
     } catch (e) {
-        util.defineMember(this.__attributes, name);
-        dotAccess.set(this.__attributes, name, value);
+      util.defineMember(this.attributes, name);
+      dotAccess.set(this.attributes, name, value);
     }
+  };
 
-};
-
-/**
- * Regenerate the CSRF token value.
- */
-Store.prototype.regenerateToken = function () {
+  /**
+   * Regenerate the CSRF token value.
+   */
+  regenerateToken() {
     this.put('_token', uid(30));
-};
+  };
 
-/**
- * Put a key / value pair or Object of key / value pairs in the session.
- *
- * @param  {String|Object}  key
- * @param  {*|null}     value
- */
-Store.prototype.put = function (key, value) {
-    if (!_.isObject(key)) {
-        var temp = {};
-        temp[key] = value;
-        key = temp;
+  /**
+   * Put a key / value pair or Object of key / value pairs in the session.
+   */
+  put(key: string | Object, value: any | null) {
+    let update: Object;
+    if (typeof key === 'string') {
+      var temp = {};
+      temp[key] = value;
+      update = temp;
+    } else {
+      update = key;
     }
 
-    var objKey;
-
-    for (objKey in key) {
-        if (key.hasOwnProperty(objKey)) {
-            this.set(objKey, key[objKey])
-        }
+    for (const objKey in update) {
+      if (update.hasOwnProperty(objKey)) {
+        this.set(objKey, update[objKey]);
+      }
     }
-};
+  };
 
-/**
- * Push a value onto a session array.
- *
- * @param  {string}  key
- * @param  {*}   value
- */
-Store.prototype.push = function (key, value) {
+  /**
+   * Push a value onto a session array.
+   */
+  push(key: string, value: any) {
     var array = this.get(key, []);
-    if (_.isArray(array)) {
-        array.push(value);
+    if (Array.isArray(array)) {
+      array.push(value);
 
-        this.put(key, array);
+      this.put(key, array);
     }
-};
+  };
 
-/**
- * Force the session to be saved and closed.
- * @param {function} callback
- */
-Store.prototype.save = function (callback) {
+  /**
+   * Force the session to be saved and closed.
+   */
+  save(callback: Function) {
     this.ageFlashData();
 
     var self = this;
 
-    this.__handler.write(this.getId(), this.__prepareForStorage(JSON.stringify(this.__attributes)), function (err) {
-        self.__started = false;
-        callback(err);
+    this.handler.write(this.getId(), this.prepareForStorage(JSON.stringify(this.attributes)), function (err: Error) {
+      self.started = false;
+      callback(err);
     });
-};
+  };
 
-/**
- * Prepare the JSON string session data for storage.
- *
- * @param  {String} data
- * @return {String}
- */
-Store.prototype.__prepareForStorage = function (data) {
+  /**
+   * Prepare the JSON string session data for storage.
+   *
+   * @param  {String} data
+   * @return {String}
+   */
+  prepareForStorage(data: string): string {
     return data;
-};
+  };
 
-/**
- * Age the flash data for the session.
- */
-Store.prototype.ageFlashData = function () {
+  /**
+   * Age the flash data for the session.
+   */
+  ageFlashData() {
     var self = this;
 
     this.get('flash.old', []).forEach(function (old) {
-        self.forget(old);
+      self.forget(old);
     });
 
     this.put('flash.old', this.get('flash.new', []));
 
     this.put('flash.new', []);
-};
+  };
 
-/**
- * Remove an item from the session.
- *
- * @param  {string} key
- */
-Store.prototype.forget = function (key) {
-    delete this.__attributes[key];
-};
+  /**
+   * Remove an item from the session.
+   */
+  forget(key: string) {
+    delete this.attributes[key];
+  };
 
-/**
- * Remove all of the items from the session.
- */
-Store.prototype.flush = function () {
-    this.__attributes = {};
-};
+  /**
+   * Remove all of the items from the session.
+   */
+  flush() {
+    this.attributes = {};
+  };
 
-/**
- * Generate a new session identifier.
- *
- * @param  {Boolean} destroy
- * @return {Boolean}
- */
-Store.prototype.regenerate = function (destroy) {
+  /**
+   * Generate a new session identifier.
+   *
+   * @param  {Boolean} destroy
+   * @return {Boolean}
+   */
+  regenerate(destroy: boolean): boolean {
     if (destroy) {
-        this.__handler.destroy(this.getId());
+      this.handler.destroy(this.getId());
     }
 
     this.setExists(false);
@@ -343,120 +325,106 @@ Store.prototype.regenerate = function (destroy) {
     this.setId();
 
     return true;
-};
+  };
 
-/**
- * Set the existence of the session on the handler if applicable.
- *
- * @param  {Boolean}  value
- */
-Store.prototype.setExists = function (value) {
-    if (_.isFunction(this.__handler.setExists)) {
-        this.__handler.setExists(value);
+  /**
+   * Set the existence of the session on the handler if applicable.
+   */
+  setExists(value: boolean) {
+    if (_.isFunction(this.handler.setExists)) {
+      this.handler.setExists(value);
     }
-};
+  };
 
-/**
- * Get the underlying session handler implementation.
- */
-Store.prototype.getHandler = function () {
-    return this.__handler;
-};
+  /**
+   * Get the underlying session handler implementation.
+   */
+  getHandler() {
+    return this.handler;
+  };
 
-/**
- * Flash a key / value pair to the session.
- *
- * @param  {String}  key
- * @param  {*}   value
- */
-Store.prototype.flash = function (key, value) {
+  /**
+   * Flash a key / value pair to the session.
+   *
+   * @param  {String}  key
+   * @param  {*}   value
+   */
+  flash(key: string, value: any) {
     this.put(key, value);
 
     this.push('flash.new', key);
 
-    this.__removeFromOldFlashData([key]);
-};
+    this.removeFromOldFlashData([key]);
+  };
 
-/**
- * Flash an input array to the session.
- *
- * @param  {Array} value
- */
-Store.prototype.flashInput = function(value)
-{
-    value = [].concat(value)
+  /**
+   * Flash an input array to the session.
+   */
+  flashInput(value: any[]) {
+    value = [].concat(...value);
     this.flash('_old_input', value);
-};
+  };
 
-/**
- * Remove the given keys from the old flash data.
- *
- * @param  {Array}  keys
- */
-Store.prototype.__removeFromOldFlashData = function (keys) {
+  /**
+   * Remove the given keys from the old flash data.
+   */
+  removeFromOldFlashData(keys: string[]) {
     this.put('flash.old', _.difference(this.get('flash.old', []), keys));
-};
+  };
 
-/**
- * Re-flash all of the session flash data.
- */
-Store.prototype.reflash = function () {
-    this.__mergeNewFlashes(this.get('flash.old', []));
+  /**
+   * Re-flash all of the session flash data.
+   */
+  reflash() {
+    this.mergeNewFlashes(this.get('flash.old', []));
 
     this.put('flash.old', []);
-};
+  };
 
-/**
- * Merge new flash keys into the new flash array.
- *
- * @param  {Array}  keys
- * @protected
- */
-Store.prototype.__mergeNewFlashes = function (keys) {
+  /**
+   * Merge new flash keys into the new flash array.
+   */
+  protected mergeNewFlashes(keys: string[]) {
     var values = _.uniq((this.get('flash.new', [])).concat(keys));
 
     this.put('flash.new', values);
-};
+  };
 
-/**
- * Re-flash a subset of the current flash data.
- *
- * @param  {Array|*}  keys
- */
-Store.prototype.keep = function (keys) {
-    keys = _.isArray(keys) ? keys : Array.prototype.slice.call(arguments);
+  /**
+   * Re-flash a subset of the current flash data.
+   */
+  keep(keys: string[] | any) {
+    keys = Array.isArray(keys) ? keys : Array.prototype.slice.call(arguments);
 
-    this.__mergeNewFlashes(keys);
+    this.mergeNewFlashes(keys);
 
-    this.__removeFromOldFlashData(keys);
-};
+    this.removeFromOldFlashData(keys);
+  };
 
-/**
- * Get the CSRF token value.
- *
- * @return {String}
- */
-Store.prototype.getToken = function() {
+  /**
+   * Get the CSRF token value.
+   */
+  getToken(): string {
     return this.get('_token');
-};
+  };
 
-/**
- * Migrates the current session to a new session id while maintaining all
- * session attributes.
- *
- * @param {boolean} destroy  Whether to delete the old session or leave it to garbage collection.
- * @return {boolean}   True if session migrated, false if error.
- */
-Store.prototype.migrate = function (destroy) {
+  /**
+   * Migrates the current session to a new session id while maintaining all
+   * session attributes.
+   *
+   * @param destroy  Whether to delete the old session or leave it to garbage collection.
+   * @return   True if session migrated, false if error.
+   */
+  migrate(destroy: boolean): boolean {
     if (destroy) {
-        this.__handler.destroy(this.getId());
+      this.handler.destroy(this.getId());
     }
 
     this.setExists(false);
     this.setId();
 
     return true;
-};
+  };
 
 
-module.exports = Store;
+}
