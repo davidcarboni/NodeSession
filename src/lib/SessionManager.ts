@@ -6,28 +6,23 @@
  * @license Licensed under MIT
  */
 
-import { Config } from "./types";
+import { Config, SessionHandler } from "./types";
 
-var FileSessionHandler = require('./handler/FileSessionHandler');
-var MemorySessionHandler = require('./handler/MemorySessionHandler');
-var DatabaseSessionHandler = require('./handler/DatabaseSessionHandler');
-var Store = require('./store/Store');
-var EncryptedStore = require('./store/EncryptedStore');
+import FileSessionHandler from './handler/FileSessionHandler';
+import MemorySessionHandler from './handler/MemorySessionHandler';
+import DatabaseSessionHandler from './handler/DatabaseSessionHandler';
+import Store from './store/Store';
+import EncryptedStore from './store/EncryptedStore';
 var Waterline = require('waterline');
 
 /**
  * Create a session manager instance.
- *
- * @param {Object} config
- * @param {Object} [encrypter]
- *
- * @constructor
  */
-export class SessionManager {
+export default class SessionManager {
 
   protected config: Config;
-  protected customCreators: Record<string, Function> = {};
-  protected encrypter: Object;
+  protected customCreators: Record<string, (config: Config, callback: (() => void) | undefined) => void> = {};
+  protected encrypter: any | undefined;
 
   /**
    * The session database model instance
@@ -39,7 +34,7 @@ export class SessionManager {
    */
   protected memorySession: Object | null;
 
-  constructor(config: Config, encrypter: Object) {
+  constructor(config: Config, encrypter?: any) {
     this.config = config;
     this.encrypter = encrypter;
     this.memorySession = null;
@@ -55,7 +50,7 @@ export class SessionManager {
   /**
    * Get a driver instance.
    */
-  driver(driver: string, callback: Function) {
+  driver(driver?: string, callback?: () => void) {
     driver = driver ? driver : this.getDefaultDriver();
 
     this.createDriver(driver, callback);
@@ -66,7 +61,7 @@ export class SessionManager {
    *
    * throws Error if specified given driver creator method doesn't exists.
    */
-  protected createDriver(driver: string, callback: Function) {
+  protected createDriver(driver: string, callback?: () => void) {
     var method = 'create' + driver.charAt(0).toUpperCase() + driver.slice(1) + 'Driver';
 
     // We'll check to see if a creator method exists for the given driver. If not we
@@ -75,7 +70,7 @@ export class SessionManager {
     if (this.customCreators[driver]) {
       return this.callCustomCreator(driver, callback);
     } else if (typeof this.customCreators[method] === 'function') {
-      return this.customCreators[method](callback);
+      return this.customCreators[method](this.config, callback);
     }
 
     throw new Error("Driver " + driver + " not supported.");
@@ -84,7 +79,7 @@ export class SessionManager {
   /**
    * Call a custom driver creator.
    */
-  protected callCustomCreator(driver: string, callback: Function) {
+  protected callCustomCreator(driver: string, callback?: () => void) {
     this.customCreators[driver](this.config, callback);
   };
 
@@ -96,7 +91,7 @@ export class SessionManager {
    * @param  {function} handler
    * @return {SessionManager}
    */
-  registerHandler(driver: string, handler: Function) {
+  registerHandler(driver: string, handler: (config: Config, callback: (() => void) | undefined) => void) {
     this.customCreators[driver] = handler;
 
     return this;
@@ -218,8 +213,8 @@ export class SessionManager {
    * @param  handler
    * @return Session instance
    */
-  buildSession(handler): Object {
-    if (this.config.encrypt) {
+  buildSession(handler: SessionHandler): Store {
+    if (this.config.encrypt && this.encrypter) {
       return new EncryptedStore(
         this.config.cookie, handler, this.encrypter, this.config.secret
       );
@@ -231,7 +226,7 @@ export class SessionManager {
   /**
    * Update session encrypter service.
    */
-  setEncrypter(encrypter: Object) {
+  setEncrypter(encrypter: any) {
     this.encrypter = encrypter;
   };
 
