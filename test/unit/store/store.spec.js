@@ -432,7 +432,7 @@ describe('Store', function () {
 
       should(store.setExists(true)).not.throw();
 
-      (new SessionManager({ table: 'session', connection: { adapter: 'sails-disk' } })).__getSessionModel(function (sessionModel) {
+      (new SessionManager({ table: 'session', connection: { adapter: 'sails-disk' } })).getSessionModel(function (sessionModel) {
         handler = new DatabaseSessionHandler(sessionModel);
         store = new Store('node_session', handler);
 

@@ -9,9 +9,9 @@ import { SessionHandler } from "../types";
  */
 export default class DatabaseSessionHandler implements SessionHandler {
 
-  private __model: any;
+  private model: any;
 
-  private __exists: boolean;
+  private exists: boolean;
 
   constructor(model: any) {
     /**
@@ -20,14 +20,14 @@ export default class DatabaseSessionHandler implements SessionHandler {
      * @type {Object}
      * @private
      */
-    this.__model = model;
+    this.model = model;
 
     /**
      * The existence state of the session.
      *
      * @type {Boolean}
      */
-    this.__exists = false;
+    this.exists = false;
   }
 
   /**
@@ -37,9 +37,9 @@ export default class DatabaseSessionHandler implements SessionHandler {
     var self = this;
     var response = '';
 
-    this.__model.findOne(sessionId, function (err: Error, session: Object) {
+    this.model.findOne(sessionId, function (err: Error, session: Object) {
       if (!err && session && session.payload) {
-        self.__exists = true;
+        self.exists = true;
 
         response = JSON.parse(session.payload);
       }
@@ -55,12 +55,12 @@ export default class DatabaseSessionHandler implements SessionHandler {
    */
   write(sessionId: string, data: string, callback: (err?: Error) => void) {
     var self = this;
-    if (this.__exists) {
-      this.__model.update(sessionId,
+    if (this.exists) {
+      this.model.update(sessionId,
         { payload: JSON.stringify(data), lastActivity: (new Date()).getTime() },
         function (err: Error, _record: any) {
           if (!err) {
-            self.__exists = true;
+            self.exists = true;
           }
 
           if (callback) {
@@ -70,7 +70,7 @@ export default class DatabaseSessionHandler implements SessionHandler {
       );
     }
     else {
-      this.__model.create(
+      this.model.create(
         {
           id: sessionId,
           payload: JSON.stringify(data),
@@ -78,7 +78,7 @@ export default class DatabaseSessionHandler implements SessionHandler {
         },
         function (err: Error, record: any) {
           if (!err) {
-            self.__exists = true;
+            self.exists = true;
           }
 
           if (callback) {
@@ -94,7 +94,7 @@ export default class DatabaseSessionHandler implements SessionHandler {
    * Destroys a session.
    */
   destroy(sessionId: string, callback: (err?: Error) => void) {
-    this.__model.destroy(sessionId, function (err: Error) {
+    this.model.destroy(sessionId, function (err: Error) {
       if (callback) {
         callback(err);
       }
@@ -108,7 +108,7 @@ export default class DatabaseSessionHandler implements SessionHandler {
    */
   gc(maxAge: string | number) {
     var age = (new Date()).getTime() - +(maxAge);
-    this.__model.destroy({ lastActivity: { '<': age } }, function (err) {
+    this.model.destroy({ lastActivity: { '<': age } }, function (err) {
     });
   };
 
@@ -119,7 +119,7 @@ export default class DatabaseSessionHandler implements SessionHandler {
    * @return {DatabaseSessionHandler}
    */
   setExists<DatabaseSessionHandler>(value: boolean): DatabaseSessionHandler {
-    this.__exists = value;
+    this.exists = value;
 
     return this as unknown as DatabaseSessionHandler;
   };

@@ -13,7 +13,7 @@ describe('DatabaseSessionHandler', function () {
   (new SessionManager({
     table: 'session',
     connection: { adapter: 'sails-disk' }
-  })).__getSessionModel(function (sessionModel) {
+  })).getSessionModel(function (sessionModel) {
     var handler = new DatabaseSessionHandler(sessionModel);
     var sessionId = 'testsession';
     var testData = 'testData';

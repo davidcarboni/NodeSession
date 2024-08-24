@@ -16,13 +16,13 @@ export default class FileSessionHandler implements SessionHandler {
   /**
    * The path where sessions should be stored.
    */
-  private __path: string;
+  private path: string;
 
   constructor(path: string) {
-    this.__path = path;
+    this.path = path;
 
     // Create directory for session storage.
-    fs.mkdirSync(this.__path, { recursive: true });
+    fs.mkdirSync(this.path, { recursive: true });
   }
 
   /**
@@ -30,7 +30,7 @@ export default class FileSessionHandler implements SessionHandler {
    */
   read(sessionId: string, callback?: (session: any) => void) {
     try {
-      const data = fs.readFileSync(path.join(this.__path, sessionId), { encoding: 'utf-8' });
+      const data = fs.readFileSync(path.join(this.path, sessionId), { encoding: 'utf-8' });
       if (callback) callback(data);
     } catch (e) {
       if (callback) callback('');
@@ -43,7 +43,7 @@ export default class FileSessionHandler implements SessionHandler {
   write(sessionId: string, data: string, callback: (err?: Error) => void) {
     let err: Error | undefined;
     try {
-      fs.writeFileSync(path.join(this.__path, sessionId), data, 'utf-8');
+      fs.writeFileSync(path.join(this.path, sessionId), data, 'utf-8');
     } catch (e) {
       err = e as Error;
     }
@@ -56,7 +56,7 @@ export default class FileSessionHandler implements SessionHandler {
   destroy(sessionId: string, callback?: (err?: Error) => void) {
     let err: Error | undefined;
     try {
-      fs.unlinkSync(path.join(this.__path, sessionId));
+      fs.unlinkSync(path.join(this.path, sessionId));
     } catch (e) {
       err = e as Error;
     }
@@ -68,10 +68,10 @@ export default class FileSessionHandler implements SessionHandler {
    */
   gc(maxAge: string | number) {
     try {
-      const files = fs.readdirSync(this.__path);
+      const files = fs.readdirSync(this.path);
       files.forEach((file) => {
         if (file[0] !== '.') {
-          const stat = fs.statSync(path.join(this.__path, file));
+          const stat = fs.statSync(path.join(this.path, file));
           if (stat.isFile() && (((new Date()).getTime() - stat.atime.getTime()) > +(maxAge))) {
             this.destroy(file);
           }
