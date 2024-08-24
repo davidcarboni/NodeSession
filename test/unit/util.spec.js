@@ -6,17 +6,17 @@
  * @license Licensed under MIT
  */
 
-var util = require('../../lib/util');
+import util from '../../util';
 
-describe('util', function(){
-    describe('method#defineMember', function(){
-        it('should define up to a parent member on given object by dot notation', function(done){
-            var obj = {};
+describe('util', function () {
+  describe('method#defineMember', function () {
+    it('should define up to a parent member on given object by dot notation', function (done) {
+      var obj = {};
 
-            util.defineMember(obj, 'a.b.c.d');
+      util.defineMember(obj, 'a.b.c.d');
 
-            obj.a.b.c.should.be.ok;
-            done();
-        })
-    });
+      obj.a.b.c.should.be.ok;
+      done();
+    })
+  });
 });

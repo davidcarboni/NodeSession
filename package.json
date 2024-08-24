@@ -41,6 +41,11 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/cookie-signature": "^1.1.2",
+    "@types/lodash": "^4.17.7",
+    "@types/on-headers": "^1.0.3",
+    "@types/proxy-addr": "^2.0.3",
     "express": "*",
     "mocha": "*",
     "sails-disk": "*",

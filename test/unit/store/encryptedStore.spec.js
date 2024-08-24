@@ -5,9 +5,9 @@
  * @copyright 2015, Harish Anchu. All rights reserved.
  * @license Licensed under MIT
  */
-var Store = require('../../../lib/store/Store');
-var EncryptedStore = require('../../../lib/store/EncryptedStore');
-var FileSessionHandler = require('../../../lib/handler/FileSessionHandler');
+import Store from '../../../store/Store';
+import EncryptedStore from '../../../store/EncryptedStore';
+import FileSessionHandler from '../../../handler/FileSessionHandler';
 
 describe('EncryptedStore', function () {
   var sessionStoragePath = './test/sessions';

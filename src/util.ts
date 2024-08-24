@@ -6,9 +6,9 @@
  * @license Licensed under MIT
  */
 
-var proxyaddr = require('proxy-addr');
+import proxyaddr from 'proxy-addr';
 
-var util = {
+const util = {
 
 
   /**
@@ -56,5 +56,4 @@ var util = {
 
 };
 
-
-module.exports = util;
+export default util;

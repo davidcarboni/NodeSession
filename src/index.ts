@@ -6,13 +6,13 @@
  * @license Licensed under MIT
  */
 
-import SessionManager from './lib/SessionManager';
-import { Config } from './lib/types';
-var onHeaders = require('on-headers');
-var _ = require('lodash');
-var signature = require('cookie-signature');
-var cookie = require('cookie');
-var util = require('./lib/util');
+import SessionManager from './SessionManager';
+import { Config } from './types';
+import onHeaders from 'on-headers';
+import _ from 'lodash';
+import signature from 'cookie-signature';
+import cookie from 'cookie';
+import util from './util';
 
 /**
  * Create a new NodeSession instance
