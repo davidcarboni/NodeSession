@@ -6,7 +6,11 @@
  * @license Licensed under MIT
  */
 
-function MemorySessionHandler(session) {
+export class MemorySessionHandler {
+
+  private __sessions: any;
+
+  constructor(session) {
     /**
      * Object to keep all the sessions
      *
@@ -15,41 +19,31 @@ function MemorySessionHandler(session) {
      */
 
     this.__sessions = session;
-}
+  }
 
-/**
- * Reads the session data.
- *
- * @param {String} sessionId
- * @param {function} callback
- */
-MemorySessionHandler.prototype.read = function (sessionId, callback) {
-    callback(this.__sessions[sessionId]||'');
-};
+  /**
+   * Reads the session data.
+   */
+  read(sessionId: string, callback: Function) {
+    callback(this.__sessions[sessionId] || '');
+  };
 
-/**
- * Writes the session data to the storage.
- *
- * @param {String} sessionId
- * @param {String} data
- * @param {function} callback
- */
-MemorySessionHandler.prototype.write = function (sessionId, data, callback) {
+  /**
+   * Writes the session data to the storage.
+   */
+  write(sessionId: string, data: string, callback: Function) {
     this.__sessions[sessionId] = data;
     callback();
-};
+  };
 
-/**
- * Destroys a session.
- *
- * @param {String} sessionId
- * @param {function} callback
- */
-MemorySessionHandler.prototype.destroy = function (sessionId, callback) {
+  /**
+   * Destroys a session.
+   */
+  destroy(sessionId: string, callback: Function) {
     delete this.__sessions[sessionId];
     if (callback) {
-        callback()
+      callback();
     }
-};
+  };
 
-module.exports = MemorySessionHandler;
+}
